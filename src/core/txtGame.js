@@ -3,6 +3,7 @@ class TxtGame{
     guis=[];
     blockingInterval;
     isBlocked=false;
+    returnedResult;//a result return by a certain function after the isBlocked is false (from a custom menu for example)
     userInputElement;
     userSelectElement;userSelectElementChoiceIdx=0;
     menuElement;
@@ -20,16 +21,17 @@ class TxtGame{
         this.footer=this.outerContainer.children[2];
     }
 
-    start(guiInstsFn,instsFn){
+    start(guiInstsFn=null,instsFn=null){
         this.guiInstsFn=guiInstsFn;
         this.instsFn=instsFn;
         //init services
         AudioService.init();
         MenuService.init(this.overlay);
+        GameChallenge.init(this);
         //bind keydown event
         window.addEventListener('keydown',(e)=>{
             let key=e.key;
-            let kc=e.keyCode;//console.log(kc);
+            let kc=e.keyCode;console.log(key,kc);
             // if there is a userInputElement then if pressed key!= enter key then write the key
             // if enter is pressed then set blocking to false and userInputElement to null
             if(this.userInputElement){
@@ -66,8 +68,14 @@ class TxtGame{
                         });
                     }
                 }
-            }// if there is a userSelectElement then if pressed key is up or down arrow then change selected choice item
-            // if enter is pressed then set blocking to false and userSelectElement to null
+            }
+            //if there is a challenge
+            else if(GameChallenge.curChallenge){//space key==32
+                if(kc==32&&GameChallenge.curChallenge.type=="precisionBar"){
+                    GameChallenge.curChallenge.container.children[0].click();
+                }
+            }
+            // if enter is pressed then set blocking to false and menuElement to null
             else if(this.menuElement){
                 if(kc===13){
                     this.isBlocked=false;
@@ -112,20 +120,34 @@ class TxtGame{
                 }
             }
         });
-        //start btn click event
-        document.getElementById("startBtn").onclick=()=>{
+        //
+        let hideOverlayAndRun=()=>{
             //hide the overlay and the start btn
             this.overlay.style.display="none";
             document.getElementById("startBtn").style.display="none";
             //run
             this.run();
         }
+        //start btn click event
+        if(instsFn){
+            document.getElementById("startBtn").onclick=()=>{
+                hideOverlayAndRun();
+            }
+        }else{
+            hideOverlayAndRun();
+        }
+    }
+
+    update(){
+        GameChallenge.update();
+        requestAnimationFrame(()=>this.update());
     }
 
     run(){
         console.log(`New game started '${this.title}'`);
         if(this.guiInstsFn)this.guiInstsFn();
         if(this.instsFn)this.instsFn();
+        this.update();
     }
 
 }

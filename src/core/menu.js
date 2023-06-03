@@ -44,4 +44,33 @@ class MenuService{
         });
     }
 
+
+    static async showCustomMenu(game,title,_content){
+        return new Promise((resolve,reject)=>{
+            game.isBlocked=true;
+            const menu=document.createElement("div");
+            menu.className="txtGameMenu";
+            const header=document.createElement("div");
+            header.innerHTML=title;
+            const content=document.createElement("div");
+            content.className="center";
+            content.appendChild(_content);
+            menu.appendChild(header);
+            menu.appendChild(content);
+            MenuService.container.appendChild(menu);
+            MenuService.container.style.display="initial";
+            game.menuElement=content;
+            game.blockingInterval=setInterval(()=>{
+                if(!game.isBlocked){
+                    clearInterval(game.blockingInterval);
+                    menu.parentNode.removeChild(menu);
+                    MenuService.container.style.display="none";
+                    let returnedResult=game.returnedResult;
+                    game.returnedResult=null;
+                    resolve(returnedResult);
+                }
+            },100);
+        });
+    }
+
 }
